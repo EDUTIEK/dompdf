@@ -1247,7 +1247,7 @@ class Cpdf
                 $font_obj->parse();
 
                 // Define subset
-                $font_obj->setSubset($subset);
+                $font_obj->setSubset(array_keys($font['C']));
                 $font_obj->reduce();
 
                 // Write new font
