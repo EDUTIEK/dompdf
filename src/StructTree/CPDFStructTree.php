@@ -20,7 +20,9 @@ class CPDFStructTree implements StructTree
      * Values are the outline id.
      * Key 0 must be the outline root id of the PDF.
      *
-     * @var array<int, int>
+     * Lazily initialized to prevent empty outline dict in PDF.
+     *
+     * @var null|array<int, int>
      */
     private $headlineParents;
 
@@ -49,6 +51,7 @@ class CPDFStructTree implements StructTree
         'Th' => 'TH',
         'Em' => 'Span',
         'I' => 'Span',
+        'Header' => 'Div',
     ];
 
     private const HTML2PDF_TH_SCOPES = [
@@ -71,7 +74,6 @@ class CPDFStructTree implements StructTree
         $this->canvas = $canvas;
         $this->structTree = new SplObjectStorage();
         self::$structDummyRoot = self::$structDummyRoot ?? new DOMDocument();
-        $this->headlineParents = [0 => $this->canvas->addOutlineRoot()];
     }
 
     public function inArtifact(): void
@@ -142,6 +144,7 @@ class CPDFStructTree implements StructTree
      */
     private function renderOutline(int $headTagNr, string $title): void
     {
+        $this->headlineParents ??= [0 => $this->canvas->addOutlineRoot()];
         // Remove all tags greater as $headTagNr (as they are no parent).
         if ($headTagNr <= max(array_keys($this->headlineParents))) {
             $this->headlineParents = array_filter($this->headlineParents, function($nr)use($headTagNr){
